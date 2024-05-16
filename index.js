@@ -24,6 +24,7 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+
 // Ruta para manejar las solicitudes de fecha
 app.get('/api/:date?', (req, res) => {
   let dateParam = req.params.date;
@@ -33,8 +34,14 @@ app.get('/api/:date?', (req, res) => {
   if (!dateParam) {
     date = new Date();
   } else {
-    // Intentar analizar la fecha proporcionada
-    date = new Date(dateParam);
+    // Verificar si el parámetro es una marca de tiempo Unix
+    if (/^\d+$/.test(dateParam)) {
+      date = new Date(parseInt(dateParam));
+    } else {
+      // Si no es una marca de tiempo Unix, intentar analizarla como una fecha válida
+      date = new Date(dateParam);
+    }
+    
     // Verificar si la fecha es válida
     if (date.toString() === 'Invalid Date') {
       return res.json({ error: 'Invalid Date' });
