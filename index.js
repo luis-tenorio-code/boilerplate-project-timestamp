@@ -23,51 +23,28 @@ app.get('/api/hello', function (req, res) {
   res.json({ greeting: 'hello API' });
 });
 
-// Ruta para manejar las solicitudes de fecha
 app.get('/api/:date?', (req, res) => {
   let dateParam = req.params.date;
+  console.log(dateParam);
   let date;
 
-  // Si no se proporciona ninguna fecha, usar la fecha actual
   if (!dateParam) {
     date = new Date();
   } else {
-    // Intentar analizar el parámetro de fecha como una fecha en formato ISO 8601
     date = new Date(dateParam);
 
-    // Si la fecha es válida, crear un objeto de respuesta
-    if (!isNaN(date.getTime())) {
-      res.json({ 
-        unix: date.getTime(), 
-        utc: date.toUTCString() 
-      });
-      return;
+    if (dateParam.length === 13) {
+      date = new Date(parseInt(dateParam));
     }
-
-    // Intentar analizar el parámetro de fecha como una marca de tiempo Unix
-    date = new Date(parseInt(dateParam));
-
-    // Si la fecha es válida, crear un objeto de respuesta
-    if (!isNaN(date.getTime())) {
-      res.json({ 
-        unix: date.getTime(), 
-        utc: date.toUTCString() 
-      });
-      return;
+    if (isNaN(date.getTime())) {
+      return res.json({ error: 'Invalid Date' });
     }
-
-    // Si no se pudo analizar la fecha, devolver un mensaje de error
-    res.json({ error: 'Invalid Date' });
-    return;
   }
-
-  // Crear objeto de respuesta con la fecha en formato Unix y UTC
-  res.json({ 
-    unix: date.getTime(), 
-    utc: date.toUTCString() 
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString(),
   });
 });
-
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
