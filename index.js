@@ -6,55 +6,67 @@ var express = require('express');
 var app = express();
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC 
+// so that your API is remotely testable by FCC
 var cors = require('cors');
-app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
+app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+app.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+// your first API endpoint...
+app.get('/api/hello', function (req, res) {
+  res.json({ greeting: 'hello API' });
 });
-
 
 // Ruta para manejar las solicitudes de fecha
 app.get('/api/:date?', (req, res) => {
   let dateParam = req.params.date;
   let date;
-  
+
   // Si no se proporciona ninguna fecha, usar la fecha actual
   if (!dateParam) {
     date = new Date();
   } else {
-    // Verificar si el parámetro es una marca de tiempo Unix
-    if (/^\d+$/.test(dateParam)) {
-      date = new Date(parseInt(dateParam));
-    } else {
-      // Si no es una marca de tiempo Unix, intentar analizarla como una fecha válida
-      date = new Date(dateParam);
+    // Intentar analizar el parámetro de fecha como una fecha en formato ISO 8601
+    date = new Date(dateParam);
+
+    // Si la fecha es válida, crear un objeto de respuesta
+    if (!isNaN(date.getTime())) {
+      res.json({ 
+        unix: date.getTime(), 
+        utc: date.toUTCString() 
+      });
+      return;
     }
-    
-    // Verificar si la fecha es válida
-    if (date.toString() === 'Invalid Date') {
-      return res.json({ error: 'Invalid Date' });
+
+    // Intentar analizar el parámetro de fecha como una marca de tiempo Unix
+    date = new Date(parseInt(dateParam));
+
+    // Si la fecha es válida, crear un objeto de respuesta
+    if (!isNaN(date.getTime())) {
+      res.json({ 
+        unix: date.getTime(), 
+        utc: date.toUTCString() 
+      });
+      return;
     }
+
+    // Si no se pudo analizar la fecha, devolver un mensaje de error
+    res.json({ error: 'Invalid Date' });
+    return;
   }
-  
+
   // Crear objeto de respuesta con la fecha en formato Unix y UTC
   res.json({ 
     unix: date.getTime(), 
     utc: date.toUTCString() 
   });
 });
-
 
 
 // Listen on port set in environment variable or default to 3000
